@@ -1,0 +1,234 @@
+import streamlit as st
+import pandas as pd
+import joblib
+import matplotlib.pyplot as plt
+
+# Page configuration
+st.set_page_config(
+    page_title="AttritionIQ | HR Analytics",
+    page_icon="📊",
+    layout="wide"
+)
+
+# Load trained models
+@st.cache_resource
+def load_models():
+    return joblib.load("attrition_models.pkl")
+
+try:
+    trained_models = load_models()
+except Exception as e:
+    st.error(f"Model loading error: {e}")
+    st.stop()
+
+# Sidebar
+st.sidebar.title("📊 AttritionIQ")
+st.sidebar.caption("Employee Retention Analytics")
+page = st.sidebar.radio(
+    "Navigation",
+    ["Dashboard", "Employee Prediction", "Model Comparison", "Feature Importance"]
+)
+
+# Header
+st.title("AttritionIQ")
+st.write("Employee Attrition Prediction & Retention Analytics")
+st.divider()
+
+# Dashboard
+if page == "Dashboard":
+
+    st.subheader("HR Analytics Dashboard")
+
+    c1, c2, c3 = st.columns(3)
+
+    c1.metric("Total Employees", "1,470")
+    c2.metric("Employees Left", "237")
+    c3.metric("Attrition Rate", "16.12%")
+
+    st.subheader("Employee Attrition Distribution")
+
+    chart_data = pd.DataFrame({
+        "Status": ["Stayed", "Left"],
+        "Employees": [1233, 237]
+    })
+
+    st.bar_chart(
+        chart_data.set_index("Status")
+    )
+
+    st.info(
+        "This dashboard uses the IBM HR Analytics "
+        "Employee Attrition dataset."
+    )
+
+# Employee Prediction
+elif page == "Employee Prediction":
+
+    st.subheader("Predict Employee Attrition")
+
+    st.write("Enter employee details below:")
+
+    with st.form("prediction_form"):
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            age = st.number_input("Age", 18, 60, 30)
+            monthly_income = st.number_input(
+                "Monthly Income", 1000, 20000, 5000
+            )
+            overtime = st.selectbox(
+                "OverTime", ["No", "Yes"]
+            )
+            job_satisfaction = st.selectbox(
+                "Job Satisfaction", [1, 2, 3, 4]
+            )
+            environment_satisfaction = st.selectbox(
+                "Environment Satisfaction", [1, 2, 3, 4]
+            )
+            work_life_balance = st.selectbox(
+                "Work Life Balance", [1, 2, 3, 4]
+            )
+            job_involvement = st.selectbox(
+                "Job Involvement", [1, 2, 3, 4]
+            )
+            years_at_company = st.number_input(
+                "Years At Company", 0, 40, 5
+            )
+            total_working_years = st.number_input(
+                "Total Working Years", 0, 40, 8
+            )
+            years_in_current_role = st.number_input(
+                "Years In Current Role", 0, 20, 3
+            )
+            years_with_curr_manager = st.number_input(
+                "Years With Current Manager", 0, 20, 3
+            )
+            num_companies_worked = st.number_input(
+                "Number Of Companies Worked", 0, 20, 2
+            )
+            distance_from_home = st.number_input(
+                "Distance From Home", 1, 30, 5
+            )
+            stock_option_level = st.selectbox(
+                "Stock Option Level", [0, 1, 2, 3]
+            )
+            business_travel = st.selectbox(
+                "Business Travel",
+                ["Non-Travel", "Travel_Rarely", "Travel_Frequently"]
+            )
+
+        with col2:
+            gender = st.selectbox(
+                "Gender", ["Male", "Female"]
+            )
+            department = st.selectbox(
+                "Department",
+                ["Sales", "Research & Development", "Human Resources"]
+            )
+            job_role = st.selectbox(
+                "Job Role",
+                [
+                    "Sales Executive",
+                    "Research Scientist",
+                    "Laboratory Technician",
+                    "Manufacturing Director",
+                    "Healthcare Representative",
+                    "Manager",
+                    "Sales Representative",
+                    "Research Director",
+                    "Human Resources"
+                ]
+            )
+            marital_status = st.selectbox(
+                "Marital Status",
+                ["Single", "Married", "Divorced"]
+            )
+            education_field = st.selectbox(
+                "Education Field",
+                [
+                    "Life Sciences",
+                    "Medical",
+                    "Marketing",
+                    "Technical Degree",
+                    "Other",
+                    "Human Resources"
+                ]
+            )
+            education = st.selectbox(
+                "Education", [1, 2, 3, 4, 5]
+            )
+            job_level = st.selectbox(
+                "Job Level", [1, 2, 3, 4, 5]
+            )
+            daily_rate = st.number_input(
+                "Daily Rate", 100, 1500, 800
+            )
+            hourly_rate = st.number_input(
+                "Hourly Rate", 30, 100, 65
+            )
+            monthly_rate = st.number_input(
+                "Monthly Rate", 2000, 27000, 14000
+            )
+            percent_salary_hike = st.number_input(
+                "Percent Salary Hike", 10, 25, 15
+            )
+            performance_rating = st.selectbox(
+                "Performance Rating", [3, 4]
+            )
+            relationship_satisfaction = st.selectbox(
+                "Relationship Satisfaction", [1, 2, 3, 4]
+            )
+            training_times_last_year = st.number_input(
+                "Training Times Last Year", 0, 6, 3
+            )
+            years_since_last_promotion = st.number_input(
+                "Years Since Last Promotion", 0, 15, 1
+            )
+
+        submitted = st.form_submit_button(
+            "Predict Attrition"
+        )
+
+    if submitted:
+
+        employee = pd.DataFrame([{
+            "Age": age,
+            "BusinessTravel": business_travel,
+            "DailyRate": daily_rate,
+            "Department": department,
+            "DistanceFromHome": distance_from_home,
+            "Education": education,
+            "EducationField": education_field,
+            "EnvironmentSatisfaction": environment_satisfaction,
+            "Gender": gender,
+            "HourlyRate": hourly_rate,
+            "JobInvolvement": job_involvement,
+            "JobLevel": job_level,
+            "JobRole": job_role,
+            "JobSatisfaction": job_satisfaction,
+            "MaritalStatus": marital_status,
+            "MonthlyIncome": monthly_income,
+            "MonthlyRate": monthly_rate,
+            "NumCompaniesWorked": num_companies_worked,
+            "OverTime": overtime,
+            "PercentSalaryHike": percent_salary_hike,
+            "PerformanceRating": performance_rating,
+            "RelationshipSatisfaction": relationship_satisfaction,
+            "StockOptionLevel": stock_option_level,
+            "TotalWorkingYears": total_working_years,
+            "TrainingTimesLastYear": training_times_last_year,
+            "WorkLifeBalance": work_life_balance,
+            "YearsAtCompany": years_at_company,
+            "YearsInCurrentRole": years_in_current_role,
+            "YearsSinceLastPromotion": years_since_last_promotion,
+            "YearsWithCurrManager": years_with_curr_manager
+        }])
+
+        selected_model = trained_models["Gradient Boosting"]
+
+        prediction = selected_model.predict(employee)[0]
+        probability = selected_model.predict_proba(employee)[0][1]
+
+        st.divider()
+        st.subheader("
